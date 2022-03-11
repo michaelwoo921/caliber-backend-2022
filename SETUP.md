@@ -8,15 +8,15 @@
 
 ## Log in to Elastic Container Registry server
 
-- `aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin <accountnumber>.dkr.ecr.us-west-2.amazonaws.com`
+- `aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 957374566417.dkr.ecr.us-west-2.amazonaws.com`
 
 ## Tag the images to their respective ECR repositories
 
-- `docker tag batches:latest <accountnumber>.dkr.ecr.us-west-2.amazonaws.com/batches:latest`
+- `docker tag batches:latest 957374566417.dkr.ecr.us-west-2.amazonaws.com/batches:latest`
 
 ## Push the Docker images to their respective ECR repositories
 
-- `docker push <accountnumber>.dkr.ecr.us-west-2.amazonaws.com/batches:latest`
+- `docker push 957374566417.dkr.ecr.us-west-2.amazonaws.com/batches:latest`
 
 # Deploy Lambda functions
 
