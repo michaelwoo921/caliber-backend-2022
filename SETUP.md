@@ -1,6 +1,6 @@
 ## Build docker image
 
-`docker build -t batches -f batches/Dockerfile .`
+`docker build -t associate -f associate/Dockerfile --build-arg USER=<pg-user> --build-arg HOST=<pg-host> --build-arg PASSWORD=<pg-password> --build-arg DATABASE=<pg-database> .`
 
 ## Create the Elastic Container Registry Repositories
 
