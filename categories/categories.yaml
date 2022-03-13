@@ -1,8 +1,8 @@
 # Make the batchWeek lambda from an existingimage
 AWSTemplateFormatVersion: 2010-09-09
-Description: lambda for BatchWeek Group
+Description: lambda for Categories Group
 Resources:
-  BatchWeekLambda:
+  CategoriesLambda:
     Type: AWS::Lambda::Function
     Properties:
       Code:
@@ -21,9 +21,9 @@ Resources:
                   'com',
                 ],
               ],
-              'batchweek:latest',
+              'categories:latest',
             ],
           ]
       Role: arn:aws:iam::957374566417:role/caliber-mobile-cf
-      FunctionName: 'batchweekLambda'
+      FunctionName: 'categoriesLambda'
       PackageType: 'Image'
