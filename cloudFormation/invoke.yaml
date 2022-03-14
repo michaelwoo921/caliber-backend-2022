@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFormation template for the invoke lambda functions
+
+Parameters:
+  lambdaARNTemplate:
+    Type: String
+    Default: 'arn:aws:lambda:us-west-2:957374566417:function:'
+  associateLambdaName:
+    Type: String
+    Default: associateLambda
+  batchesLambdaName:
+    Type: String
+    Default: batchesLambda
+  categoriesLambdaName:
+    Type: String
+    Default: categoriesLambda
+  batchAssociatesLambdaName:
+    Type: String
+    Default: batchAssociatesLambda
+  qcWeekLambdaName:
+    Type: String
+    Default: batchWeekLambda
+  qcCategoriesLambdaName:
+    Type: String
+    Default: weekCategoriesLambda
+  fireBaseLambdaName:
+    Type: String
+    Default: authorizerLambda
+
+Resources:
+  InvokeBatchesLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Join ['', [!Ref lambdaARNTemplate, !Ref batchesLambdaName]]
+      Principal: apigateway.amazonaws.com
+
+  InvokeBatchAssociatesLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        !Join ['', [!Ref lambdaARNTemplate, !Ref batchAssociatesLambdaName]]
+      Principal: apigateway.amazonaws.com
