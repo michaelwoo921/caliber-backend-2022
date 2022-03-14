@@ -8,15 +8,15 @@
 
 ## Log in to Elastic Container Registry server
 
-- `aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 957374566417.dkr.ecr.us-west-2.amazonaws.com`
+- `aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin <accountnumber>.dkr.ecr.us-west-2.amazonaws.com`
 
 ## Tag the images to their respective ECR repositories
 
-- `docker tag batches:latest 957374566417.dkr.ecr.us-west-2.amazonaws.com/batches:latest`
+- `docker tag batches:latest <accountnumber>.dkr.ecr.us-west-2.amazonaws.com/batches:latest`
 
 ## Push the Docker images to their respective ECR repositories
 
-- `docker push 957374566417.dkr.ecr.us-west-2.amazonaws.com/batches:latest`
+- `docker push <accountnumber>.dkr.ecr.us-west-2.amazonaws.com/authorizer:latest`
 
 # Deploy Lambda functions
 
@@ -29,3 +29,7 @@
 ## Deploy the Invoke Template to give API Gateway permission to use Lambdas
 
 - `aws cloudformation deploy --template-file ./cloudFormation/invoke.yaml --stack-name <stack-name> --capabilities CAPABILITY_IAM`
+
+# Deploy RDS Template if starting with a new DB instance
+
+`aws cloudformation deploy --template-file rds.yaml --stack-name <stack-name> --role-arn arn:aws:iam::<accountnumber>:role/caliber-mobile-cf --parameter-overrides DBUsername=<db-name> DBPassword=<db-password>`

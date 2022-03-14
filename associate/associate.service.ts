@@ -2,7 +2,6 @@ import { Client } from 'pg';
 import { parsePath } from './parsePath';
 import { statusToNumber, numberToStatus } from './statusConversion';
 import * as dotenv from 'dotenv';
-import { CLIENT_RENEG_WINDOW } from 'tls';
 
 dotenv.config();
 
@@ -53,13 +52,7 @@ class AssociateService {
   async putAssociate(body: string, path: string) {
     let { notecontent, technicalstatus } = JSON.parse(body);
     let { batchid, weeknumber, associateid } = parsePath(path);
-    let response = {
-      batchid,
-      weeknumber,
-      associateid,
-      notecontent,
-      technicalstatus,
-    };
+
     if (batchid === undefined) {
       return null;
     }

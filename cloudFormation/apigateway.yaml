@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFormation template for the entire AWS API Gateway Stack
+
+Parameters:
+  lambdaARNTemplate:
+    Type: String
+    Default: 'arn:aws:lambda:us-west-2:957374566417:function:'
+  batchesLambdaName:
+    Type: String
+    Default: batchesLambda
+
+Resources:
+  # API Gateway
+  apiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: Root endpoint for the caliber mobile
+      Name: caliber-mobile-api-cf
+
+  # /batches
+  batchesResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref apiGateway
+      ParentId: !GetAtt apiGateway.RootResourceId
+      PathPart: batches
+  # GET method for /batches
+  getBatchesMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref batchesLambdaName]]
+      ResourceId: !Ref batchesResource
+      RestApiId: !Ref apiGateway
+
+  InvokeBatchesLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Join ['', [!Ref lambdaARNTemplate, !Ref batchesLambdaName]]
+      Principal: apigateway.amazonaws.com
