@@ -21,9 +21,9 @@ Resources:
                   'com',
                 ],
               ],
-              'associates:latest',
+              'associate:latest',
             ],
           ]
       Role: arn:aws:iam::957374566417:role/caliber-mobile-cf
-      FunctionName: 'associateLambda'
+      FunctionName: 'associatelambda'
       PackageType: 'Image'

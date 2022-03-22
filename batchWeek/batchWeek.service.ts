@@ -2,24 +2,25 @@ import { Client } from 'pg';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-export interface Event {
-  path: string;
-  httpMethod: string;
-  body?: string;
+export interface QcWeek {
+  batchid: string;
+  weeknumber: number;
+  note: string;
+  overallstatus: string;
 }
 
 class BatchWeekService {
   constructor() {}
 
-  async getWeeksByBatchId(batchId: string) {
+  async getWeeksByBatchId(batchid: string) {
     const client = new Client();
     try {
       await client.connect();
       const query = `select id, weeknumber, note, overallstatus, batchid 
       from qcweeks where batchid = $1::text;`;
-      const result = await client.query(query, [batchId]);
+      const result = await client.query(query, [batchid]);
       console.log(result.rows);
-      return result.rows[0];
+      return result.rows;
     } catch (err: any) {
       console.log(err.stack);
       return null;
@@ -28,11 +29,11 @@ class BatchWeekService {
     }
   }
 
-  async addWeek(event: Event) {
+  async addWeek(qcweek: QcWeek) {
+    const { batchid, weeknumber, note, overallstatus } = qcweek;
+
     const client = new Client();
-    const { weeknumber, note, overallstatus, batchid } = JSON.parse(
-      event.body as string
-    );
+
     try {
       await client.connect();
       const query = `insert into qcweeks (weeknumber, note, overallstatus, batchid)
@@ -53,11 +54,9 @@ class BatchWeekService {
     }
   }
 
-  async updateFeedback(event: Event) {
+  async updateFeedback(qcweek: QcWeek) {
+    const { batchid, weeknumber, note, overallstatus } = qcweek;
     const client = new Client();
-    const { note, overallstatus, weeknumber, batchid } = JSON.parse(
-      event.body as string
-    );
     const query = `update qcweeks set note = $1::text, overallstatus = $2::STATUS
     where weeknumber = $3::integer and batchid = $4::text ;`;
     try {

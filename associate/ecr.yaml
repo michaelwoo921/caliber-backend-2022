@@ -1,10 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: ECR repo for batchassociates
+Description: ECR repo for authorizer
 Resources:
-  BatchAssociatesECR:
+  AssociateECR:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: 'batchassociates'
+      RepositoryName: 'associate'
       LifecyclePolicy:
         LifecyclePolicyText: |
           {
@@ -24,7 +24,7 @@ Resources:
             ]
           }
 Outputs:
-  BatchesECRArn:
-    Value: !GetAtt BatchAssociatesECR.Arn
+  AssociateECRArn:
+    Value: !GetAtt AssociateECR.Arn
     Export:
-      Name: BatchAssociatesECRArn
+      Name: AssociateECRArn

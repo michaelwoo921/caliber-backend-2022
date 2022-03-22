@@ -19,8 +19,7 @@ export async function handler(event: any) {
 
     case 'POST': {
       let { categoryid, qcweekid } = JSON.parse(event.body);
-      categoryid = Number(categoryid);
-      qcweekid = Number(qcweekid);
+
       const weekCategory = await weekCategoryService.addWeekCategory({
         categoryid,
         qcweekid,
@@ -29,9 +28,10 @@ export async function handler(event: any) {
     }
     case 'DELETE': {
       const parts = event.path.split('/');
-      const batchid = parts[parts.length - 4];
-      const weeknumber = Number(parts[parts.length - 2]);
+      const batchid = parts[parts.length - 5];
+      const weeknumber = Number(parts[parts.length - 3]);
       const categoryid = Number(parts[parts.length - 1]);
+
       const res = await weekCategoryService.deleteWeekCategory(
         batchid,
         weeknumber,

@@ -3,13 +3,6 @@ import https from 'https';
 import BatchInfo from './BatchInfo';
 
 export const agent = new https.Agent({ rejectUnauthorized: false });
-export interface Event {
-  queryStringParameters: {
-    trainerEmail?: string;
-    query?: string;
-    year?: string;
-  };
-}
 
 class BatchService {
   private URI: string;
@@ -55,8 +48,8 @@ class BatchService {
         return batchData as BatchInfo;
       });
       return batches;
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      console.log(err.stack);
       return [];
     }
   }
@@ -112,8 +105,7 @@ class BatchService {
     return batches;
   }
 
-  async getBatchesByTrainer(event: Event): Promise<BatchInfo[]> {
-    let { trainerEmail } = event.queryStringParameters;
+  async getBatchesByTrainer(trainerEmail: string): Promise<BatchInfo[]> {
     if (!trainerEmail) {
       return [];
     }

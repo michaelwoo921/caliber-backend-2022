@@ -7,25 +7,25 @@ Parameters:
     Default: 'arn:aws:lambda:us-west-2:957374566417:function:'
   associateLambdaName:
     Type: String
-    Default: associateLambda
+    Default: associatelambda
   batchesLambdaName:
     Type: String
-    Default: batchesLambda
+    Default: batcheslambda
   categoriesLambdaName:
     Type: String
-    Default: categoriesLambda
+    Default: categorieslambda
   batchAssociatesLambdaName:
     Type: String
-    Default: batchAssociatesLambda
+    Default: batchassociateslambda
   qcWeekLambdaName:
     Type: String
-    Default: batchWeekLambda
+    Default: batchweeklambda
   qcCategoriesLambdaName:
     Type: String
-    Default: weekCategoriesLambda
+    Default: weekcategorieslambda
   fireBaseLambdaName:
     Type: String
-    Default: authorizerLambda
+    Default: authorizerlambda
 
 Resources:
   # API Gateway
@@ -34,6 +34,19 @@ Resources:
     Properties:
       Description: Root endpoint for the caliber mobile
       Name: caliber-mobile-api-cf
+
+  Authorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: !Ref fireBaseLambdaName
+      AuthorizerResultTtlInSeconds: '0'
+      AuthorizerUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+        - lambdaArn:
+            !Join ['', [!Ref lambdaARNTemplate, !Ref fireBaseLambdaName]]
+      RestApiId: !Ref apiGateway
+      Type: TOKEN
+      IdentitySource: method.request.header.Authorization
 
   # /batches
   batchesResource:
@@ -129,15 +142,45 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
   # GET method for /categories
+  getCategoriesMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref categoriesLambdaName]]
+      ResourceId: !Ref categoriesResource
+      RestApiId: !Ref apiGateway
+  # POST method for /categories
+  addCategoryMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref categoriesLambdaName]]
+      ResourceId: !Ref categoriesResource
+      RestApiId: !Ref apiGateway
 
-  # API Gateway Resource - /categories/{categoryId}
+  # API Gateway Resource - /categories/{categoryid}
   categoryIdResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref apiGateway
       ParentId: !Ref categoriesResource
-      PathPart: '{categoryId}'
-  # CORS for /categories/{categoryId}
+      PathPart: '{categoryid}'
+
+  # CORS for /categories/{categoryid}
   categoryOptionsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -169,6 +212,21 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
+  updateCategoryMethod:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref apiGateway
+      ResourceId: !Ref categoryIdResource
+      HttpMethod: PUT
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref categoriesLambdaName]]
+
   # API Gateway Resource - /qc
   qcResource:
     Type: AWS::ApiGateway::Resource
@@ -183,14 +241,14 @@ Resources:
       RestApiId: !Ref apiGateway
       ParentId: !Ref qcResource
       PathPart: batches
-  # API Gateway Resource - /qc/batches/{batchId}
+  # API Gateway Resource - /qc/batches/{batchid}
   qcBatchResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref apiGateway
       ParentId: !Ref qcBatchesResource
-      PathPart: '{batchId}'
-  # CORS for /qc/batches/{batchId}
+      PathPart: '{batchid}'
+  # CORS for /qc/batches/{batchid}
   qcBatchResourceOptionsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -222,7 +280,7 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: false
             method.response.header.Access-Control-Allow-Origin: false
 
-  # GET method for /qc/batches/{batchId}/
+  # GET method for /qc/batches/{batchid}/
   getBatchMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -241,40 +299,400 @@ Resources:
       ResourceId: !Ref qcBatchResource
       RestApiId: !Ref apiGateway
 
-  # API Gateway Resource - /qc/batches/{batchId}/weeks
+  # API Gateway Resource - /qc/batches/{batchid}/weeks
   qcWeeksResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref apiGateway
       ParentId: !Ref qcBatchResource
       PathPart: weeks
-  # API Gateway Resource - /qc/batches/{batchId}/weeks/{week}
+  # CORS for /qc/batches/{batchid}/weeks
+  qcWeeksOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: apiGateway
+      ResourceId:
+        Ref: qcWeeksResource
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+  # GET method for /qc/batches/{batchid}/weeks
+  getWeeksMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref qcWeekLambdaName]]
+      ResourceId: !Ref qcWeeksResource
+      RestApiId: !Ref apiGateway
+
+  # API Gateway Resource - /qc/batches/{batchid}/weeks/{weeknumber}
   qcWeekResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref apiGateway
       ParentId: !Ref qcWeeksResource
-      PathPart: '{week}'
-  # API Gateway Resource - /qc/batches/{batchId}/weeks/{week}/associates
+      PathPart: '{weeknumber}'
+  # CORS for /qc/batches/{batchid}/weeks/{weeknumber}
+  qcWeekOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: apiGateway
+      ResourceId:
+        Ref: qcWeekResource
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+  # POST method for qc/batches/{batchid}/weeks/{weeknumber}
+  addWeekNoteMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref qcWeekLambdaName]]
+      ResourceId: !Ref qcWeekResource
+      RestApiId: !Ref apiGateway
+  # PUT method for /qc/batches/{batchid}/weeks/{weeknumber}
+  updateWeekNoteMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: PUT
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref qcWeekLambdaName]]
+      ResourceId: !Ref qcWeeksResource
+      RestApiId: !Ref apiGateway
+
+  # API Gateway Resource - /qc/batches/{batchid}/weeks/{weeknumber}/categories
+  qcCategoriesResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref apiGateway
+      ParentId: !Ref qcWeekResource
+      PathPart: categories
+  # CORS for /qc/batches/{batchid}/weeks/{weeknumber}/categories
+  qcCategoriesOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: apiGateway
+      ResourceId:
+        Ref: qcCategoriesResource
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+  # GET method for qc/batches/{batchid}/weeks/{weeknumber}/categories
+  getQcCategoriesMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref qcCategoriesLambdaName]]
+      ResourceId: !Ref qcCategoriesResource
+      RestApiId: !Ref apiGateway
+  # POST method for qc/batches/{batchid}/weeks/{weeknumber}/categories
+  addQcCategoryMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref qcCategoriesLambdaName]]
+      ResourceId: !Ref qcCategoriesResource
+      RestApiId: !Ref apiGateway
+  # API Gateway Resource - /qc/batches/{batchid}/weeks/{weeknumber}/categories/{categoryid}
+  qcCategoryResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref apiGateway
+      ParentId: !Ref qcCategoriesResource
+      PathPart: '{categoryid}'
+  # CORS for /qc/batches/{batchid}/weeks/{weeknumber}/categories/{categoryid}
+  qcCategoryOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: apiGateway
+      ResourceId:
+        Ref: qcCategoryResource
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+  # DELETE method for /qc/batches/{batchid}/weeks/{weeknumber}/categories/{categoryid}
+  deleteQcCategoryMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: DELETE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref qcCategoriesLambdaName]]
+      ResourceId: !Ref qcCategoryResource
+      RestApiId: !Ref apiGateway
+
+  # API Gateway Resource - /qc/batches/{batchid}/weeks/{weeknumber}/associates
   qcAssociatesResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref apiGateway
       ParentId: !Ref qcWeekResource
       PathPart: associates
-  # API Gateway Resource - /qc/batches/{batchId}/weeks/{week}/associates/{associateId}
+  # API Gateway Resource - /qc/batches/{batchid}/weeks/{weeknumber}/associates/{associateid}
   qcAssociateResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref apiGateway
       ParentId: !Ref qcAssociatesResource
-      PathPart: '{associateId}'
+      PathPart: '{associateid}'
+
+  # CORS for /qc/batches/{batchid}/weeks/{weeknumber}/associates/{associateid}
+  qcAssociatesOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId:
+        Ref: apiGateway
+      ResourceId:
+        Ref: qcAssociateResource
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PUT,PATCH,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: false
+            method.response.header.Access-Control-Allow-Methods: false
+            method.response.header.Access-Control-Allow-Origin: false
+  # GET method for /qc/batches/{batchid}/weeks/{weeknumber}/associates/{associateid}
+  getAssociateInfoMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref associateLambdaName]]
+      ResourceId: !Ref qcAssociateResource
+      RestApiId: !Ref apiGateway
+
+  # PUT method for /qc/batches/{batchid}/weeks/{weeknumber}/associates/{associateid}
+  updateAssociateInfoMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: PUT
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref associateLambdaName]]
+      ResourceId: !Ref qcAssociateResource
+      RestApiId: !Ref apiGateway
+
+  # PATCH method for /qc/batches/{batchid}/weeks/{weeknumber}/associates/{associateid}
+  updateNoteOrStatusMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: PATCH
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn:
+              !Join ['', [!Ref lambdaARNTemplate, !Ref associateLambdaName]]
+      ResourceId: !Ref qcAssociateResource
+      RestApiId: !Ref apiGateway
+
+  # API Gateway Deployment
+  apiGatewayDefaultDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - getCategoriesMethod
+      - addCategoryMethod
+      - updateCategoryMethod
+      - getBatchesMethod
+      - getBatchMethod
+      - getWeeksMethod
+      - addWeekNoteMethod
+      - updateWeekNoteMethod
+      - getQcCategoriesMethod
+      - addQcCategoryMethod
+      - deleteQcCategoryMethod
+      - getAssociateInfoMethod
+      - updateAssociateInfoMethod
+      - updateNoteOrStatusMethod
+    Properties:
+      RestApiId: !Ref apiGateway
+      StageName: default
 
   InvokeBatchesLambda:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Join ['', [!Ref lambdaARNTemplate, !Ref batchesLambdaName]]
+      Principal: apigateway.amazonaws.com
+  InvokeCategoriesLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        !Join ['', [!Ref lambdaARNTemplate, !Ref categoriesLambdaName]]
+      Principal: apigateway.amazonaws.com
+
+  InvokeQCWeekLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Join ['', [!Ref lambdaARNTemplate, !Ref qcWeekLambdaName]]
+      Principal: apigateway.amazonaws.com
+  InvokeQCCategoriesLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        !Join ['', [!Ref lambdaARNTemplate, !Ref qcCategoriesLambdaName]]
+      Principal: apigateway.amazonaws.com
+  InvokeAssociateLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        !Join ['', [!Ref lambdaARNTemplate, !Ref associateLambdaName]]
       Principal: apigateway.amazonaws.com
   InvokeBatchAssociatesLambda:
     Type: AWS::Lambda::Permission
@@ -283,3 +701,15 @@ Resources:
       FunctionName:
         !Join ['', [!Ref lambdaARNTemplate, !Ref batchAssociatesLambdaName]]
       Principal: apigateway.amazonaws.com
+
+  InvokeFirebaseLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        !Join ['', [!Ref lambdaARNTemplate, !Ref fireBaseLambdaName]]
+      Principal: apigateway.amazonaws.com
+
+Outputs:
+  apiGatewayInvokeUrl:
+    Value: !Sub https://${apiGateway}.execute-api.${AWS::Region}.amazonaws.com/default

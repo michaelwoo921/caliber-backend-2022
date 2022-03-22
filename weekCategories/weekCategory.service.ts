@@ -15,7 +15,7 @@ class WeekCategoryService {
       const res = await client.query(q, [batchid, weeknumber]);
       console.log(res.rows[0]);
       const { id } = res.rows[0];
-      console.log('**', typeof id, id);
+
       const query = `select c.skill, c.id from categories c join weekcategories w
       on c.id = w.categoryid where w.qcweekid = ${id};`;
       const result = await client.query(query);
@@ -38,7 +38,7 @@ class WeekCategoryService {
       const res = await client.query(q, [categoryid, qcweekid]);
       return res.rows[0];
     } catch (err: any) {
-      console.log(err.trace);
+      console.log(err.stack);
       return null;
     } finally {
       client.end();
@@ -56,16 +56,18 @@ class WeekCategoryService {
       const q = `select id from qcweeks where batchid=$1::text and
       weeknumber =$2::integer;`;
       const res = await client.query(q, [batchid, weeknumber]);
+
       if (res.rows.length > 0) {
         const { id } = res.rows[0];
-        const query = `delete from weekcategories where qcweekid = $1::number
-        and categoryid =$2::number;`;
+        const query = `delete from weekcategories where qcweekid = $1::integer
+        and categoryid =$2::integer;`;
+
         await client.query(query, [id, categoryid]);
         return 'success';
       }
       return null;
     } catch (err: any) {
-      console.log(err.trace);
+      console.log('err', err.stack);
       return null;
     } finally {
       client.end();

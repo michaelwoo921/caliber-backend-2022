@@ -1,10 +1,11 @@
-# Make the batchWeek lambda from an existingimage
-AWSTemplateFormatVersion: 2010-09-09
-Description: lambda for BatchWeek Group
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda for BatchAssociates Group
 Resources:
-  BatchWeekLambda:
+  BatchesLambda:
     Type: AWS::Lambda::Function
     Properties:
+      FunctionName: batchassociateslambda
+      Role: arn:aws:iam::957374566417:role/caliber-mobile-cf
       Code:
         ImageUri:
           !Join [
@@ -21,9 +22,8 @@ Resources:
                   'com',
                 ],
               ],
-              'batchweek:latest',
+              'batchassociates:latest',
             ],
           ]
-      Role: arn:aws:iam::957374566417:role/caliber-mobile-cf
-      FunctionName: 'batchweekLambda'
+      Timeout: 5
       PackageType: 'Image'

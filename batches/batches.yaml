@@ -4,7 +4,7 @@ Resources:
   BatchesLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: batchesLambda
+      FunctionName: batcheslambda
       Role: arn:aws:iam::957374566417:role/caliber-mobile-cf
       Code:
         ImageUri:

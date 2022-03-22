@@ -1,10 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: ECR repo for batchassociates
+Description: ECR repo for categories
 Resources:
-  BatchAssociatesECR:
+  CategoriesECR:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: 'batchassociates'
+      RepositoryName: 'categories'
       LifecyclePolicy:
         LifecyclePolicyText: |
           {
@@ -24,7 +24,7 @@ Resources:
             ]
           }
 Outputs:
-  BatchesECRArn:
-    Value: !GetAtt BatchAssociatesECR.Arn
+  CategoriesECRArn:
+    Value: !GetAtt CategoriesECR.Arn
     Export:
-      Name: BatchAssociatesECRArn
+      Name: CategoriesECRArn

@@ -1,10 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: ECR repo for batchassociates
+Description: ECR repo for batchWeek
 Resources:
-  BatchAssociatesECR:
+  BatchWeekECR:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: 'batchassociates'
+      RepositoryName: 'batchweek'
       LifecyclePolicy:
         LifecyclePolicyText: |
           {
@@ -24,7 +24,7 @@ Resources:
             ]
           }
 Outputs:
-  BatchesECRArn:
-    Value: !GetAtt BatchAssociatesECR.Arn
+  BatchWeekECRArn:
+    Value: !GetAtt BatchWeekECR.Arn
     Export:
-      Name: BatchAssociatesECRArn
+      Name: BatchWeekECRArn

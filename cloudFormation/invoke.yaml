@@ -7,25 +7,25 @@ Parameters:
     Default: 'arn:aws:lambda:us-west-2:957374566417:function:'
   associateLambdaName:
     Type: String
-    Default: associateLambda
+    Default: associatelambda
   batchesLambdaName:
     Type: String
-    Default: batchesLambda
+    Default: batcheslambda
   categoriesLambdaName:
     Type: String
-    Default: categoriesLambda
+    Default: categorieslambda
   batchAssociatesLambdaName:
     Type: String
-    Default: batchAssociatesLambda
+    Default: batchassociateslambda
   qcWeekLambdaName:
     Type: String
-    Default: batchWeekLambda
+    Default: batchweeklambda
   qcCategoriesLambdaName:
     Type: String
-    Default: weekCategoriesLambda
+    Default: weekcategorieslambda
   fireBaseLambdaName:
     Type: String
-    Default: authorizerLambda
+    Default: authorizerlambda
 
 Resources:
   InvokeBatchesLambda:
@@ -35,10 +35,46 @@ Resources:
       FunctionName: !Join ['', [!Ref lambdaARNTemplate, !Ref batchesLambdaName]]
       Principal: apigateway.amazonaws.com
 
+  InvokeCategoriesLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        !Join ['', [!Ref lambdaARNTemplate, !Ref categoriesLambdaName]]
+      Principal: apigateway.amazonaws.com
+  InvokeQCWeekLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Join ['', [!Ref lambdaARNTemplate, !Ref qcWeekLambdaName]]
+      Principal: apigateway.amazonaws.com
+  InvokeQCCategoriesLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        !Join ['', [!Ref lambdaARNTemplate, !Ref qcCategoriesLambdaName]]
+      Principal: apigateway.amazonaws.com
+  InvokeAssociateLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        !Join ['', [!Ref lambdaARNTemplate, !Ref associateLambdaName]]
+      Principal: apigateway.amazonaws.com
+
   InvokeBatchAssociatesLambda:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName:
         !Join ['', [!Ref lambdaARNTemplate, !Ref batchAssociatesLambdaName]]
+      Principal: apigateway.amazonaws.com
+
+  InvokeFirebaseLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        !Join ['', [!Ref lambdaARNTemplate, !Ref fireBaseLambdaName]]
       Principal: apigateway.amazonaws.com

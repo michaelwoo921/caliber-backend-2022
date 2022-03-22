@@ -1,11 +1,6 @@
 import axios from 'axios';
-import https from 'https';
+import * as https from 'https';
 
-export interface Event {
-  path: string;
-  httpMethod: string;
-  body?: string;
-}
 export const agent = new https.Agent({ rejectUnauthorized: false });
 
 class BatchAssociateService {
@@ -14,11 +9,9 @@ class BatchAssociateService {
     this.URI = 'https://caliber2-mock.revaturelabs.com:443/mock/training/batch';
   }
 
-  async getAssociates(path: string): Promise<any[]> {
-    let newpath = path.split('/');
-
+  async getAssociates(batchid: string): Promise<any[]> {
     return axios
-      .get(this.URI + '/' + newpath[newpath.length - 1] + '/associates', {
+      .get(this.URI + '/' + batchid + '/associates', {
         withCredentials: true,
         httpsAgent: agent,
       })

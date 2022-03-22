@@ -6,10 +6,10 @@ drop table if exists qcnotes cascade;
 
 create table categories
 (
-  id serial primary key
+  id serial primary key,
   skill text not null,
   active boolean
-)
+);
 
 insert into categories (skill, active)  values 
 ('React', true),
@@ -20,7 +20,7 @@ insert into categories (skill, active)  values
 ('AWS Fargate', false),
 ('AWS Lambda', true),
 ('Jest', true),
- ('Enzyme', true),
+ ('Enzyme', true);
 
 create type STATUS as enum ('Undefined', 'Poor', 'Average', 'Good', 'Superstar');
 
@@ -32,7 +32,7 @@ create table qcweeks
   overallstatus STATUS,
   batchid text not null,
   unique (batchid, weeknumber)
-)
+);
 
 insert into qcweeks (weekNumber, note, overallStatus, batchId)  values 
 (1, '', 'Average', 'batch1'),

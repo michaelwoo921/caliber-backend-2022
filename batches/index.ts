@@ -1,6 +1,14 @@
 import createResponse from './response';
 import BatchInfo from './BatchInfo';
-import batchService, { Event } from './batch.service';
+import batchService from './batch.service';
+
+export interface Event {
+  queryStringParameters: {
+    trainerEmail?: string;
+    query?: string;
+    year?: string;
+  };
+}
 
 export async function handler(event: Event) {
   try {
@@ -10,7 +18,7 @@ export async function handler(event: Event) {
       return createResponse(JSON.stringify(batchInfo), 200);
     } else if (trainerEmail) {
       let batchInfo: BatchInfo[] = await batchService.getBatchesByTrainer(
-        event
+        trainerEmail
       );
       let validYearsArray = batchInfo.map((batch) => {
         return new Date(batch.startDate).getFullYear().toString();

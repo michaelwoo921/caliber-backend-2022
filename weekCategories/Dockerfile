@@ -1,6 +1,6 @@
 FROM public.ecr.aws/lambda/nodejs:14
 
-COPY weekCategories/*.ts tsconfig.json package.json /var/task/
+COPY weekcategories/*.ts tsconfig.json package.json /var/task/
 
 RUN npm install
 RUN npx tsc

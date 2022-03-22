@@ -25,5 +25,5 @@ Resources:
             ],
           ]
       Role: arn:aws:iam::957374566417:role/caliber-mobile-cf
-      FunctionName: 'authorizerLambda'
+      FunctionName: 'authorizerlambda'
       PackageType: 'Image'
